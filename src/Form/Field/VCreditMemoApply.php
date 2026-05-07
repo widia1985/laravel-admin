@@ -1,6 +1,6 @@
 <?php
 
-namespace Encore\Admin\Forms\Field;
+namespace Encore\Admin\Form\Field;
 
 use Encore\Admin\Admin;
 use Encore\Admin\Form\Field\Select;
