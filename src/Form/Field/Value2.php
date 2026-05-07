@@ -1,5 +1,5 @@
 <?php
-namespace Encore\Admin\Forms\Field;
+namespace Encore\Admin\Form\Field;
 
 use Encore\Admin\Form\Field;
 use Encore\Admin\Extensions\Tools\ModalField;
