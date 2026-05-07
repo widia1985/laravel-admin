@@ -1,6 +1,6 @@
 <?php
 
-namespace Encore\Admin\Src\Form\Field;
+namespace Encore\Admin\Form\Field;
 
 use Encore\Admin\Support\AdminUploadStorageUrl;
 use Encore\Admin\Admin;
