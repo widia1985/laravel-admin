@@ -471,7 +471,7 @@ CSS
 JS
         );
 
-        return view('admin.form.ajax_image', array_merge($this->variables(), [
+        return view('admin::form.ajax_image', array_merge($this->variables(), [
             'hiddenName' => $hiddenName,
             'hiddenValue' => $hiddenValue,
             'previewUrl' => $previewUrl,
