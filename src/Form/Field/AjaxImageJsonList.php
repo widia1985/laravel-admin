@@ -512,7 +512,7 @@ class AjaxImageJsonList extends Field
 JS
         );
 
-        return view('admin.form.ajax_image_list', array_merge($this->variables(), [
+        return view('admin::form.ajax_image_list', array_merge($this->variables(), [
             'slots' => $slots,
             'wrapId' => $wrapId,
             'fileInputId' => $fileInputId,
