@@ -391,22 +391,6 @@ HTML;
     }
 
     /**
-     * Show field as number.
-     *
-     * @param int    $decimals
-     * @param string $decimal_seperator
-     * @param string $thousands_seperator
-     *
-     * @return Field
-     */
-    public function number($decimals = 0, $decimal_seperator = '.', $thousands_seperator = ',')
-    {
-        return $this->unescape()->as(function ($value) use ($decimals, $decimal_seperator, $thousands_seperator) {
-            return number_format($value, $decimals, $decimal_seperator, $thousands_seperator);
-        });
-    }
-
-    /**
      * Show field as json code.
      *
      * @return Field
@@ -416,11 +400,7 @@ HTML;
         $field = $this;
 
         return $this->unescape()->as(function ($value) use ($field) {
-            if (is_string($value)) {
-                $content = json_decode($value, true);
-            } else {
-                $content = $value;
-            }
+            $content = json_decode($value, true);
 
             if (json_last_error() == 0) {
                 $field->border = false;

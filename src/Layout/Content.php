@@ -174,15 +174,6 @@ class Content implements Renderable
     }
 
     /**
-     * @param string $view
-     * @param array  $data
-     */
-    public function component($view, $data = [])
-    {
-        return $this->body(Admin::component($view, $data));
-    }
-
-    /**
      * @param $var
      *
      * @return $this

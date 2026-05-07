@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\Relation;
-use Illuminate\Database\Query\Expression;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Request;
@@ -373,7 +372,7 @@ class Model
         }
 
         if ($this->relation) {
-            $this->model = $this->relation;
+            $this->model = $this->relation->getQuery();
         }
 
         $this->setSort();
@@ -527,9 +526,6 @@ class Model
 
         $columnNameContainsDots = Str::contains($columnName, '.');
         $isRelation = $this->queries->contains(function ($query) use ($columnName) {
-            // relationship should be camel case
-            $columnName = Str::camel(Str::before($columnName, '.'));
-
             return $query['method'] === 'with' && in_array($columnName, $query['arguments'], true);
         });
         if ($columnNameContainsDots === true && $isRelation) {
@@ -543,7 +539,7 @@ class Model
                 $explodedCols = explode('.', $this->sort['column']);
                 $col = array_shift($explodedCols);
                 $parts = implode('.', $explodedCols);
-                $columnName = "JSON_EXTRACT({$col}, '$.{$parts}')";
+                $columnName = "{$col}->>'$.{$parts}'";
             }
 
             // get column. if contains "cast", set set column as cast
@@ -552,7 +548,7 @@ class Model
                 $method = 'orderByRaw';
                 $arguments = [$column];
             } else {
-                $column = $columnNameContainsDots ? new Expression($columnName) : $columnName;
+                $column = $columnName;
                 $method = 'orderBy';
                 $arguments = [$column, $this->sort['type']];
             }
@@ -574,8 +570,6 @@ class Model
     protected function setRelationSort($column)
     {
         list($relationName, $relationColumn) = explode('.', $column);
-        // relationship should be camel case
-        $relationName = Str::camel($relationName);
 
         if ($this->queries->contains(function ($query) use ($relationName) {
             return $query['method'] == 'with' && in_array($relationName, $query['arguments']);

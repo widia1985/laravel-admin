@@ -106,8 +106,6 @@ class Builder
      * Builder constructor.
      *
      * @param Form $form
-     *
-     * @return void
      */
     public function __construct(Form $form)
     {
@@ -120,8 +118,6 @@ class Builder
 
     /**
      * Do initialize.
-     *
-     * @return void
      */
     public function init()
     {
@@ -174,7 +170,7 @@ class Builder
     /**
      * Returns builder is $mode.
      *
-     * @param string $mode
+     * @param $mode
      *
      * @return bool
      */
@@ -206,7 +202,7 @@ class Builder
     /**
      * Set resource Id.
      *
-     * @param mixed $id
+     * @param $id
      *
      * @return void
      */
@@ -272,8 +268,6 @@ class Builder
      * Set form action.
      *
      * @param string $action
-     *
-     * @return void
      */
     public function setAction($action)
     {
@@ -530,8 +524,6 @@ class Builder
 
     /**
      * @param string $message
-     *
-     * @return void
      */
     public function confirm(string $message)
     {
@@ -611,8 +603,6 @@ SCRIPT;
 
     /**
      * Add script for tab form.
-     *
-     * @return void
      */
     protected function addTabformScript()
     {
@@ -642,15 +632,10 @@ SCRIPT;
         Admin::script($script);
     }
 
-    /**
-     * Add script for cascade.
-     *
-     * @return void
-     */
     protected function addCascadeScript()
     {
         $script = <<<SCRIPT
-;(function () {
+(function () {
     $('form.{$this->formClass}').submit(function (e) {
         e.preventDefault();
         $(this).find('div.cascade-group.hide :input').attr('disabled', true);

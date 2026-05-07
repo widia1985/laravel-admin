@@ -56,8 +56,9 @@ class Editable extends AbstractDisplayer
     /**
      * Text type editable.
      */
-    public function text()
+    public function text($options = [])
     {
+        $this->addOptions($options);
     }
 
     /**
@@ -176,29 +177,43 @@ class Editable extends AbstractDisplayer
      */
     public function display()
     {
-        $this->options['name'] = $column = $this->getName();
+        $this->options['name'] = $column = $this->column->getName();
 
         $class = 'grid-editable-'.str_replace(['.', '#', '[', ']'], '-', $column);
 
         $this->buildEditableOptions(func_get_args());
 
+        $success = "";
+        if(isset($this->options['success']) ){
+            $success = $this->options['success'];
+            unset($this->options['success']);
+        }
         $options = json_encode($this->options);
 
-        $options = substr($options, 0, -1).<<<'STR'
-    ,
-    "success":function(response, newValue){
-        if (response.status){
-            $.admin.toastr.success(response.message, '', {positionClass:"toast-top-center"});
-        } else {
-            $.admin.toastr.error(response.message, '', {positionClass:"toast-top-center"});
+        if($success!=''){
+            $options = substr($options, 0, -1).<<<EOT
+                ,
+                "success":{$success}
+            }
+            EOT;
         }
-    }
-}
-STR;
+        else{
+            $options = substr($options, 0, -1).<<<'STR'
+                ,
+                "success":function(response, newValue){
+                    if (response.status){
+                        $.admin.toastr.success(response.message, '', {positionClass:"toast-top-center"});
+                    } else {
+                        $.admin.toastr.error(response.message, '', {positionClass:"toast-top-center"});
+                    }
+                }
+            }
+            STR;
+        }
 
         Admin::script("$('.$class').editable($options);");
 
-        $this->value = htmlentities($this->value ?? '');
+        $this->value = htmlentities($this->value);
 
         $attributes = [
             'href'       => '#',

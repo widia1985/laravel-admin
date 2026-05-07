@@ -25,7 +25,3 @@
     </div>
     <!-- /.box-body -->
 </div>
-
-<script>
-    $('.dependencies').slimscroll({height:'510px',size:'3px'});
-</script>

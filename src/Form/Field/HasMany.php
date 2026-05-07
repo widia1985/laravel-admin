@@ -6,7 +6,6 @@ use Encore\Admin\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Form\NestedForm;
-use Encore\Admin\Widgets\Form as WidgetForm;
 use Illuminate\Database\Eloquent\Relations\HasMany as Relation;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Arr;
@@ -74,6 +73,8 @@ class HasMany extends Field
      * @var array
      */
     protected $distinctFields = [];
+	
+	protected $readonly = false;
 
     /**
      * Create a new HasMany field instance.
@@ -92,9 +93,15 @@ class HasMany extends Field
             $this->builder = $arguments[0];
         }
 
-        if (count($arguments) == 2) {
+        if (count($arguments) == 2 || count($arguments) == 3) {
             list($this->label, $this->builder) = $arguments;
         }
+		
+		if (count($arguments) == 3 ) {
+			if($arguments[2] == "readonly"){
+				$this->readonly = true;
+			}
+		}
     }
 
     /**
@@ -330,11 +337,7 @@ class HasMany extends Field
     {
         $form = new Form\NestedForm($column, $model);
 
-        if ($this->form instanceof WidgetForm) {
-            $form->setWidgetForm($this->form);
-        } else {
-            $form->setForm($this->form);
-        }
+        $form->setForm($this->form);
 
         call_user_func($builder, $form);
 
@@ -448,6 +451,10 @@ class HasMany extends Field
 
                 $forms[$key] = $this->buildNestedForm($this->column, $this->builder, $model)
                     ->fill($data);
+					
+				if($this->readonly){
+					$forms[$key]->readonlyAllFields();
+				}
             }
         }
 
@@ -667,7 +674,7 @@ EOT;
 
         $this->setupScript($script);
 
-        return parent::fieldRender([
+        return parent::render()->with([
             'forms'        => $this->buildRelatedForms(),
             'template'     => $template,
             'relationName' => $this->relationName,
@@ -724,7 +731,7 @@ EOT;
         // specify a view to render.
         $this->view = $this->views[$this->viewMode];
 
-        return parent::fieldRender([
+        return parent::render()->with([
             'headers'      => $headers,
             'forms'        => $this->buildRelatedForms(),
             'template'     => $template,

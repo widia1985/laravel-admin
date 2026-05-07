@@ -7,6 +7,7 @@ use Encore\Admin\Actions\GridAction;
 use Encore\Admin\Actions\Response;
 use Encore\Admin\Actions\RowAction;
 use Encore\Admin\Widgets\Form;
+use Encore\Admin\Widgets\Selectable\Selectable;
 use Exception;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Database\Eloquent\Model;
@@ -153,15 +154,15 @@ class HandleController extends Controller
     public function handleSelectable(Request $request)
     {
         $class = $request->get('selectable');
-        $args = $request->get('args', []);
+        $multiple = $request->get('multiple', 0);
 
         $class = str_replace('_', '\\', $class);
 
         if (class_exists($class)) {
-            /** @var \Encore\Admin\Grid\Selectable $selectable */
-            $selectable = new $class(...array_values($args));
+            /** @var Selectable $selectable */
+            $selectable = new $class();
 
-            return $selectable->render();
+            return $selectable->render($multiple);
         }
 
         return $class;

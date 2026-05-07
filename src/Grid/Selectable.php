@@ -29,92 +29,59 @@ abstract class Selectable
     protected $key = '';
 
     /**
-     * @var bool
-     */
-    protected $multiple = false;
-
-    /**
      * @var int
      */
     protected $perPage = 10;
 
     /**
-     * @var bool
-     */
-    protected $imageLayout = false;
-
-    /**
-     * Selectable constructor.
-     *
-     * @param $key
-     * @param $multiple
-     */
-    public function __construct($multiple = false, $key = '')
-    {
-        $this->key = $key ?: $this->key;
-        $this->multiple = $multiple;
-
-        $this->initGrid();
-    }
-
-    /**
-     * @return void
+     * @return Grid
      */
     abstract public function make();
-
-    protected function imageLayout()
-    {
-        $this->imageLayout = true;
-    }
 
     /**
      * @param bool $multiple
      *
      * @return string
      */
-    public function render()
+    public function render($multiple = false)
     {
         $this->make();
 
-        if ($this->imageLayout) {
-            $this->setView('admin::grid.image', ['key' => $this->key]);
-        } else {
-            $this->appendRemoveBtn(true);
-        }
+        $this->appendRemoveBtn();
 
-        $this->disableFeatures()->paginate($this->perPage)->expandFilter();
-
-        $displayer = $this->multiple ? Checkbox::class : Radio::class;
-
-        $this->prependColumn('__modal_selector__', ' ')->displayUsing($displayer, [$this->key]);
-
-        return $this->grid->render();
-    }
-
-    /**
-     * @return $this
-     */
-    protected function disableFeatures()
-    {
-        return $this->disableExport()
+        $this->paginate($this->perPage)
+            ->expandFilter()
+            ->disableExport()
             ->disableActions()
             ->disableBatchActions()
             ->disableCreateButton()
             ->disableColumnSelector()
             ->disablePerPageSelector();
+
+        $displayer = $multiple ? Checkbox::class : Radio::class;
+
+        $this->prependColumn('__modal_selector__', ' ')
+            ->displayUsing($displayer, [$this->key]);
+
+        return $this->grid->render();
     }
 
-    public function renderFormGrid($values)
+    public function renderFormGrid($values, $multiple = false)
     {
         $this->make();
 
         $this->appendRemoveBtn(false);
-
         $this->model()->whereKey(Arr::wrap($values));
 
-        $this->disableFeatures()->disableFilter();
+        $this->disableFilter()
+            ->disableExport()
+            ->disableActions()
+            ->disableBatchActions()
+            ->disableCreateButton()
+            ->disableColumnSelector()
+            ->disablePerPageSelector();
 
-        if (!$this->multiple) {
+        if (!$multiple) {
             $this->disablePagination();
         }
 
@@ -163,6 +130,10 @@ BTN;
      */
     public function __call(string $method, array $arguments = [])
     {
+        if (is_null($this->grid)) {
+            $this->initGrid();
+        }
+
         return $this->grid->{$method}(...$arguments);
     }
 }

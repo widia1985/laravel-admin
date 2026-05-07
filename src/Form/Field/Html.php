@@ -64,6 +64,7 @@ class Html extends Field
 
         $viewClass = $this->getViewElementClasses();
 
+if($this->label)
         return <<<EOT
 <div class="{$viewClass['form-group']}">
     <label  class="{$viewClass['label']} control-label">{$this->label}</label>
@@ -71,6 +72,10 @@ class Html extends Field
         {$this->html}
     </div>
 </div>
+EOT;
+else
+        return <<<EOT
+{$this->html}
 EOT;
     }
 }

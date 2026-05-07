@@ -18,12 +18,6 @@
                 <span class="input-group-addon clearfix">{!! $append !!}</span>
             @endif
 
-            @isset($btn)
-                <span class="input-group-btn">
-                  {!! $btn !!}
-                </span>
-            @endisset
-
         </div>
 
         @include('admin::form.help-block')

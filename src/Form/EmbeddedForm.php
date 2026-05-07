@@ -3,7 +3,6 @@
 namespace Encore\Admin\Form;
 
 use Encore\Admin\Form;
-use Encore\Admin\Widgets\Form as WidgetForm;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
@@ -53,7 +52,7 @@ use Illuminate\Support\Collection;
 class EmbeddedForm
 {
     /**
-     * @var Form|WidgetForm
+     * @var Form
      */
     protected $parent = null;
 
@@ -115,20 +114,6 @@ class EmbeddedForm
     }
 
     /**
-     * Set parent form for this form.
-     *
-     * @param WidgetForm $parent
-     *
-     * @return $this
-     */
-    public function setParentWidgetForm(WidgetForm $parent)
-    {
-        $this->parent = $parent;
-
-        return $this;
-    }
-
-    /**
      * Set original values for fields.
      *
      * @param array $data
@@ -181,7 +166,7 @@ class EmbeddedForm
             return in_array($key, (array) $field->column());
         });
 
-        if ($field && method_exists($field, 'prepare')) {
+        if (method_exists($field, 'prepare')) {
             return $field->prepare($record);
         }
 
@@ -286,11 +271,7 @@ class EmbeddedForm
             /** @var Field $field */
             $field = new $className($column, array_slice($arguments, 1));
 
-            if ($this->parent instanceof WidgetForm) {
-                $field->setWidgetForm($this->parent);
-            } else {
-                $field->setForm($this->parent);
-            }
+            $field->setForm($this->parent);
 
             $this->pushField($field);
 

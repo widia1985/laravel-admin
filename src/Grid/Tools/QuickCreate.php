@@ -7,6 +7,7 @@ use Encore\Admin\Form\Field;
 use Encore\Admin\Form\Field\MultipleSelect;
 use Encore\Admin\Form\Field\Select;
 use Encore\Admin\Form\Field\Text;
+use Encore\Admin\Form\Field\Hidden;
 use Encore\Admin\Grid;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Collection;
@@ -22,6 +23,11 @@ class QuickCreate implements Renderable
      * @var Collection
      */
     protected $fields;
+	
+	protected $postUrl;
+	
+	protected $paddingleft = 57;
+	protected $widthField = 200;
 
     /**
      * QuickCreate constructor.
@@ -33,6 +39,21 @@ class QuickCreate implements Renderable
         $this->parent = $grid;
         $this->fields = Collection::make();
     }
+	
+	public function resourcePost($resource){
+		$this->postUrl = url($resource);
+		return $this;
+	}
+	
+	public function paddingleft($n){
+		$this->paddingleft = $n;
+		return $this;
+	}
+	
+	public function widthField($n){
+		$this->widthField = $n;
+		return $this;
+	}
 
     protected function formatPlaceholder($placeholder)
     {
@@ -48,8 +69,17 @@ class QuickCreate implements Renderable
     public function text($column, $placeholder = '')
     {
         $field = new Text($column, $this->formatPlaceholder($placeholder));
+        $this->addField($field->width($this->widthField.'px'));
 
-        $this->addField($field->width('200px'));
+        return $field;
+    }
+	
+	public function hidden($column,$value)
+    {
+        $field = new Hidden($column);
+		$field->value($value);
+
+        $this->addField($field);
 
         return $field;
     }
@@ -231,11 +261,14 @@ class QuickCreate implements Renderable
 
     protected function script()
     {
-        $url = $this->parent->resource();
+		if($this->postUrl)
+			$url = $this->postUrl;
+		else
+            $url = request()->url();
 
         $script = <<<SCRIPT
 
-;(function () {
+(function () {
 
     $('.quick-create .create').click(function () {
         $('.quick-create .create-form').show();
@@ -248,7 +281,7 @@ class QuickCreate implements Renderable
     });
     
     $('.quick-create .create-form').submit(function (e) {
-        $(':submit', e.target).button('loading');
+    
         e.preventDefault();
     
         $.ajax({
@@ -268,9 +301,7 @@ class QuickCreate implements Renderable
                     $.admin.toastr.warning(data.message, '', {positionClass:"toast-top-center"})
                 }
             },
-            error: function(XMLHttpRequest, textStatus){
-                $(':submit', e.target).button('reset');
-
+            error:function(XMLHttpRequest, textStatus){
                 if (typeof XMLHttpRequest.responseJSON === 'object') {
                     $.admin.toastr.error(XMLHttpRequest.responseJSON.message, '', {positionClass:"toast-top-center", timeOut: 10000});
                 }
@@ -303,6 +334,7 @@ SCRIPT;
         $vars = [
             'columnCount' => $columnCount,
             'fields'      => $this->fields,
+			'paddingleft' => $this->paddingleft,
         ];
 
         return view('admin::grid.quick-create.form', $vars)->render();

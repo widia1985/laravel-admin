@@ -39,6 +39,24 @@ class DateRange extends Field
     /**
      * {@inheritdoc}
      */
+    public function value($value = null)
+    {
+        if (is_null($value)) {
+            if (!is_null($this->value) && is_null($this->value['start']) && is_null($this->value['end'])) {
+                return $this->getDefault();
+            }
+
+            return $this->value;
+        }
+
+        $this->value = $value;
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function prepare($value)
     {
         if ($value === '') {
@@ -50,7 +68,7 @@ class DateRange extends Field
 
     public function render()
     {
-        $this->options['locale'] = array_key_exists('locale', $this->options) ? $this->options['locale'] : config('app.locale');
+        $this->options['locale'] = config('app.locale');
 
         $startOptions = json_encode($this->options);
         $endOptions = json_encode($this->options + ['useCurrent' => false]);

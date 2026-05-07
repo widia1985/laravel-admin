@@ -60,9 +60,8 @@ trait BelongsToRelation
     protected function getLoadUrl($multiple = 0)
     {
         $selectable = str_replace('\\', '_', $this->selectable);
-        $args = [$multiple];
 
-        return route('admin.handle-selectable', compact('selectable', 'args'));
+        return route('admin.handle-selectable', compact('selectable', 'multiple'));
     }
 
     /**

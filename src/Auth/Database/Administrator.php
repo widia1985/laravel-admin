@@ -8,7 +8,7 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Storage;
-
+use App\Admin\Traits\AdminAuthorizable;
 /**
  * Class Administrator.
  *
@@ -19,6 +19,7 @@ class Administrator extends Model implements AuthenticatableContract
     use Authenticatable;
     use HasPermissions;
     use DefaultDatetimeFormat;
+	use AdminAuthorizable;
 
     protected $fillable = ['username', 'password', 'name', 'avatar'];
 
