@@ -12,7 +12,21 @@ class ModalField extends Action
 	public $sponser = null;
 	protected $form = null;
 	protected $columns = null;
-	
+
+	/**
+	 * Parent Action::makeSelector() uses one cached ".action-*" per PHP class name, so every
+	 * ModalField shared the same class and the last registered script stole all clicks.
+	 * Resolve a fresh selector per instance (safe for CSS / jQuery).
+	 */
+	public function selector($prefix)
+	{
+		if ($this->selector === null) {
+			$this->selector = $prefix.'mf'.bin2hex(random_bytes(6));
+		}
+
+		return $this->selector;
+	}
+
 	public function render()
     {
         $this->addScript();
@@ -38,7 +52,7 @@ class ModalField extends Action
 	
 	protected function getElementClass()
     {
-        return $this->class." ".parent::getElementClass();
+        return trim($this->class.' '.parent::getElementClass());
     }
 	
 
