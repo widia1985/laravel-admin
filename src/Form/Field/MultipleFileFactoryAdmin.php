@@ -1,6 +1,6 @@
 <?php
 
-namespace Encore\FactoryAdmin\Forms\Field;
+namespace Encore\FactoryAdmin\Form\Field;
 
 use Encore\Admin\Form\Field;
 use Encore\Admin\Extensions\Tools\ModalField;
