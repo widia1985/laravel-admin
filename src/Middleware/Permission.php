@@ -84,7 +84,6 @@ class Permission
      */
     protected function shouldPassThrough($request)
     {
-        // 下面这些路由不验证权限
         $excepts = array_merge(config('admin.auth.excepts', []), [
             'auth/login',
             'auth/logout',

@@ -192,8 +192,6 @@ class Form implements Renderable
         $this->builder->setMode(Builder::MODE_EDIT);
         $this->builder->setResourceId($id);
 
-        $this->setRelationFieldSnakeAttributes();
-
         $this->setFieldValue($id);
 
         return $this;
@@ -383,7 +381,7 @@ class Form implements Renderable
      */
     protected function ajaxResponse($message)
     {
-        $request = \request();
+        $request = Request::capture();
 
         // ajax but not pjax
         if ($request->ajax() && !$request->pjax()) {
@@ -480,10 +478,8 @@ class Form implements Renderable
         $relations = [];
 
         foreach ($inputs as $column => $value) {
-            if ((method_exists($this->model, $column) ||
-                method_exists($this->model, $column = Str::camel($column))) &&
-                !method_exists(Model::class, $column)
-            ) {
+            if (method_exists($this->model, $column) ||
+                method_exists($this->model, $column = Str::camel($column))) {
                 $relation = call_user_func([$this->model, $column]);
 
                 if ($relation instanceof Relations\Relation) {
@@ -626,7 +622,7 @@ class Form implements Renderable
      */
     protected function isEditable(array $input = []): bool
     {
-        return array_key_exists('_editable', $input) || array_key_exists('_edit_inline', $input);
+        return array_key_exists('_editable', $input);
     }
 
     /**
@@ -801,52 +797,56 @@ class Form implements Renderable
                     break;
                 case $relation instanceof Relations\HasMany:
                 case $relation instanceof Relations\MorphMany:
-                    /** @var Relations\HasOneOrMany $relation */
-                    $relation = $this->model->$name();
+				    $first = current($prepared[$name]);
+			
+                    if(isset($first[static::REMOVE_FLAG_NAME])){
+						foreach ($prepared[$name] as $related) {
+							
+							/** @var Relations\HasOneOrMany $relation */
+							$relation = $this->model->$name();
 
-                    $data = $prepared[$name];
-                    $first = Arr::first($data);
+							$keyName = $relation->getRelated()->getKeyName();
+							
+							/*widia*/
+							if(ISSET($related[$keyName."_KEY"])){
+								$related[$keyName] = $related[$keyName."_KEY"];
+								unset($related[$keyName."_KEY"]);
+							}
+							if(isset($related[$keyName]) && $related[$keyName] == ""){
+								unset($related[$keyName]);
+							}
+							/*widia*/
+							
+							/** @var Model $child */
+							$child = $relation->findOrNew(Arr::get($related, $keyName));
 
-                    if (is_array($first)) { //relation updated via HasMany field
-                        foreach ($data as $related) {
-                            /** @var Relations\HasOneOrMany $relation */
-                            $relation = $this->model->$name();
+							if (Arr::get($related, static::REMOVE_FLAG_NAME) == 1) {
+								$child->delete();
+								continue;
+							}
 
-                            $keyName = $relation->getRelated()->getKeyName();
+							Arr::forget($related, static::REMOVE_FLAG_NAME);
 
-                            /** @var Model $child */
-                            $child = $relation->findOrNew(Arr::get($related, $keyName));
+							foreach ($related as $colum => $value) {
+								$child->setAttribute($colum, $value);
+							}
 
-                            if (Arr::get($related, static::REMOVE_FLAG_NAME) == 1) {
-                                $child->delete();
-                                continue;
-                            }
-
-                            Arr::forget($related, static::REMOVE_FLAG_NAME);
-
-                            $child->fill($related);
-
-                            $child->save();
-                        }
-                    } else { //relation updated via MultipleSelect field
-                        $foreignKeyName = $relation->getForeignKeyName();
-                        $localKeyName = $relation->getLocalKeyName();
-
-                        foreach ($relation->get() as $child) {
-                            if (($ind = array_search($child->getKey(), $data)) !== false) {
-                                unset($data[$ind]);
-                            } else {
-                                $child->$foreignKeyName = null;
-                                $child->save();
-                            }
-                        }
-
-                        foreach ($data as $id) {
-                            $child = $relation->getRelated()->find($id);
-                            $child->$foreignKeyName = $this->model->$localKeyName;
-                            $child->save();
-                        }
-                    }
+							$child->save();
+						}
+					}
+					else{
+						$relation = $this->model()->$name();
+						$keyName = $relation->getRelated()->getKeyName();
+						get_class($relation->getRelated())::where($this->model()->getKeyName(),$this->model->getKey())->delete();
+						foreach ($prepared[$name] as $related) {
+							if($related<>""){
+								$instance = $relation->make();
+								$instance->setAttribute($keyName, $related);
+								$instance->setAttribute($this->model()->getKeyName(),$this->model->getKey());
+								$instance->save();
+							}
+						}
+					}
                     break;
             }
         }
@@ -1038,34 +1038,6 @@ class Form implements Renderable
     }
 
     /**
-     * Determine relational column needs to be snaked.
-     *
-     * @return void
-     */
-    protected function setRelationFieldSnakeAttributes()
-    {
-        $relations = $this->getRelations();
-
-        $this->fields()->each(function (Field $field) use ($relations) {
-            if ($field->getSnakeAttributes()) {
-                return;
-            }
-
-            $column = $field->column();
-
-            $column = is_array($column) ? head($column) : $column;
-
-            list($relation) = explode('.', $column);
-
-            if (!in_array($relation, $relations)) {
-                return;
-            }
-
-            $field->setSnakeAttributes($this->model::$snakeAttributes);
-        });
-    }
-
-    /**
      * Set all fields value in form.
      *
      * @param $id
@@ -1090,6 +1062,23 @@ class Form implements Renderable
 
         $this->fields()->each(function (Field $field) use ($data) {
             if (!in_array($field->column(), $this->ignored, true)) {
+				/*widia*/
+				if (get_class($field) == "Encore\Admin\Form\Field\MultipleSelect") { //widia add
+					if(strpos($column=$field->column(),".")>0){
+						$rel = explode(".",$column);
+						if (method_exists($this->model, $rel[0]) &&
+							$this->model->{$rel[0]}() instanceof Relations\Relation
+						) {
+							$relation =  $this->model->{$rel[0]}()->first();
+							if(method_exists($relation, $rel[1]) && $relation->{$rel[1]}() instanceof Relations\Relation)
+							{
+								$data[$column] = implode(",",$relation->{$rel[1]}()->get('EMP_ID')->modelKeys());
+							}
+						
+						}
+					}
+				}
+				/*widia*/
                 $field->fill($data);
             }
         });
@@ -1180,7 +1169,6 @@ class Form implements Renderable
                 list($relation) = explode('.', $column);
 
                 if (method_exists($this->model, $relation) &&
-                    !method_exists(Model::class, $relation) &&
                     $this->model->$relation() instanceof Relations\Relation
                 ) {
                     $relations[] = $relation;
@@ -1532,18 +1520,6 @@ class Form implements Renderable
     }
 
     /**
-     * __isset.
-     *
-     * @param string $name
-     *
-     * @return bool
-     */
-    public function __isset($name)
-    {
-        return isset($this->inputs[$name]);
-    }
-
-    /**
      * Generate a Field object and add to form builder if Field exists.
      *
      * @param string $method
@@ -1554,6 +1530,7 @@ class Form implements Renderable
     public function __call($method, $arguments)
     {
         if ($className = static::findFieldClass($method)) {
+			
             $column = Arr::get($arguments, 0, ''); //[0];
 
             $element = new $className($column, array_slice($arguments, 1));

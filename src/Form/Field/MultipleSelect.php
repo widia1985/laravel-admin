@@ -3,7 +3,7 @@
 namespace Encore\Admin\Form\Field;
 
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany as HasManyRelation;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
@@ -29,22 +29,23 @@ class MultipleSelect extends Select
             return $this->otherKey;
         }
 
-        if (is_callable([$this->form->model(), $this->column])) {
-            $relation = $this->form->model()->{$this->column}();
+        if (is_callable([$this->form->model(), $this->column]) &&
+            ($relation = $this->form->model()->{$this->column}()) instanceof HasMany
+        ){
+			return $this->otherKey=$relation->getRelated()->getKeyName();
+		}
+		
+        if (is_callable([$this->form->model(), $this->column]) &&
+            ($relation = $this->form->model()->{$this->column}()) instanceof BelongsToMany
+        ) {
+            /* @var BelongsToMany $relation */
+            $fullKey = $relation->getQualifiedRelatedPivotKeyName();
+            $fullKeyArray = explode('.', $fullKey);
 
-            if ($relation instanceof BelongsToMany) {
-                /* @var BelongsToMany $relation */
-                $fullKey = $relation->getQualifiedRelatedPivotKeyName();
-                $fullKeyArray = explode('.', $fullKey);
-
-                return $this->otherKey = 'pivot.'.end($fullKeyArray);
-            } elseif ($relation instanceof HasManyRelation) {
-                /* @var HasManyRelation $relation */
-                return $this->otherKey = $relation->getRelated()->getKeyName();
-            }
+            return $this->otherKey = end($fullKeyArray);
         }
 
-        throw new \Exception('Column of this field must be a `BelongsToMany` or `HasMany` relation.');
+        throw new \Exception('Column of this field must be a `BelongsToMany` relation.');
     }
 
     /**
@@ -78,7 +79,11 @@ class MultipleSelect extends Select
         // MultipleSelect value store as an ont-to-many relationship.
         } elseif (is_array($first)) {
             foreach ($relations as $relation) {
-                $this->value[] = Arr::get($relation, $this->getOtherKey());
+                 $v = Arr::get($relation, "pivot.{$this->getOtherKey()}");
+				 if($v == ""){
+				    $v = Arr::get($relation, "{$this->getOtherKey()}");
+				 }
+				 $this->value[] = $v;
             }
 
             // MultipleSelect value store as a column.
@@ -112,7 +117,7 @@ class MultipleSelect extends Select
         // MultipleSelect value store as an ont-to-many relationship.
         } elseif (is_array($first)) {
             foreach ($relations as $relation) {
-                $this->original[] = Arr::get($relation, $this->getOtherKey());
+                $this->original[] = Arr::get($relation, "pivot.{$this->getOtherKey()}");
             }
 
             // MultipleSelect value store as a column.

@@ -55,21 +55,22 @@
             </tfoot>
         </table>
     </div>
-    <template class="{{$column}}-tpl">
-        <tr>
-            <td>
-                <div class="form-group">
-                    <div class="col-sm-12">
-                        <input name="{{ $column }}[values][]" class="form-control" />
-                    </div>
-                </div>
-            </td>
-
-            <td style="width: 75px;">
-                <div class="{{$column}}-remove btn btn-warning btn-sm pull-right">
-                    <i class="fa fa-trash">&nbsp;</i>{{ __('admin.remove') }}
-                </div>
-            </td>
-        </tr>
-    </template>
 </div>
+
+<template class="{{$column}}-tpl">
+    <tr>
+        <td>
+            <div class="form-group">
+                <div class="col-sm-12">
+                    <input name="{{ $column }}[values][]" class="form-control" />
+                </div>
+            </div>
+        </td>
+
+        <td style="width: 75px;">
+            <div class="{{$column}}-remove btn btn-warning btn-sm pull-right">
+                <i class="fa fa-trash">&nbsp;</i>{{ __('admin.remove') }}
+            </div>
+        </td>
+    </tr>
+</template>

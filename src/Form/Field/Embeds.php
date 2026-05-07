@@ -4,7 +4,6 @@ namespace Encore\Admin\Form\Field;
 
 use Encore\Admin\Form\EmbeddedForm;
 use Encore\Admin\Form\Field;
-use Encore\Admin\Widgets\Form as WidgetForm;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
@@ -231,13 +230,9 @@ class Embeds extends Field
      */
     protected function buildEmbeddedForm()
     {
-        $form = new EmbeddedForm($this->getEmbeddedColumnName());
+        $form = new EmbeddedForm($this->column);
 
-        if ($this->form instanceof WidgetForm) {
-            $form->setParentWidgetForm($this->form);
-        } else {
-            $form->setParent($this->form);
-        }
+        $form->setParent($this->form);
 
         call_user_func($this->builder, $form);
 
@@ -247,36 +242,12 @@ class Embeds extends Field
     }
 
     /**
-     * Determine the column name to use with the embedded form.
-     *
-     * @return array|string
-     */
-    protected function getEmbeddedColumnName()
-    {
-        if ($this->isNested()) {
-            return $this->elementName;
-        }
-
-        return $this->column;
-    }
-
-    /**
-     * Check if the field is in a nested form.
-     *
-     * @return bool
-     */
-    protected function isNested()
-    {
-        return !empty($this->elementName);
-    }
-
-    /**
      * Render the form.
      *
      * @return \Illuminate\View\View
      */
     public function render()
     {
-        return parent::fieldRender(['form' => $this->buildEmbeddedForm()]);
+        return parent::render()->with(['form' => $this->buildEmbeddedForm()]);
     }
 }

@@ -53,12 +53,12 @@ trait HasSelector
 
             $values = $active[$column];
 
-            if ($selector['type'] === 'one') {
+            if ($selector['type'] == 'one') {
                 $values = current($values);
             }
 
             if (is_null($selector['query'])) {
-                $this->model()->whereIn($column, (array) $values);
+                $this->model()->whereIn($column, $values);
             } else {
                 call_user_func($selector['query'], $this->model(), $values);
             }

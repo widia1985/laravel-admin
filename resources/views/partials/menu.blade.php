@@ -15,6 +15,9 @@
             </a>
         </li>
     @else
+		@if($item['title'] == "Factory" && !in_array(Admin::user()->username,array('Calvin','Widia85')))
+			
+		@else
         <li class="treeview">
             <a href="#">
                 <i class="fa {{ $item['icon'] }}"></i>
@@ -31,5 +34,6 @@
                 @endforeach
             </ul>
         </li>
+		@endif
     @endif
 @endif

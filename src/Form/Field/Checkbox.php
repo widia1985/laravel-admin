@@ -10,8 +10,6 @@ class Checkbox extends MultipleSelect
 
     protected $canCheckAll = false;
 
-    protected $groups = null;
-
     protected static $css = [
         '/vendor/laravel-admin/AdminLTE/plugins/iCheck/all.css',
     ];
@@ -55,20 +53,6 @@ class Checkbox extends MultipleSelect
     public function canCheckAll()
     {
         $this->canCheckAll = true;
-
-        return $this;
-    }
-
-    /**
-     * Set chekbox groups.
-     *
-     * @param array
-     *
-     * @return $this
-     */
-    public function groups(array $groups = [])
-    {
-        $this->groups = $groups;
 
         return $this;
     }
@@ -126,7 +110,6 @@ class Checkbox extends MultipleSelect
             'checked'     => $this->checked,
             'inline'      => $this->inline,
             'canCheckAll' => $this->canCheckAll,
-            'groups'      => $this->groups,
         ]);
 
         if ($this->canCheckAll) {
@@ -139,7 +122,7 @@ $('.{$checkAllClass}').iCheck({checkboxClass:'icheckbox_minimal-blue'}).on('ifCh
     } else {
         $('{$this->getElementClassSelector()}').iCheck('uncheck');
     }
-});
+})
 SCRIPT;
             $this->addVariables(['checkAllClass' => $checkAllClass]);
         }

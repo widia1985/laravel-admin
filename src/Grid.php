@@ -31,10 +31,8 @@ class Grid
         Concerns\HasActions,
         Concerns\HasSelector,
         Concerns\CanHidesColumns,
-        Concerns\CanFixHeader,
         Concerns\CanFixColumns,
         Concerns\CanExportGrid,
-        Concerns\CanDoubleClick,
         ShouldSnakeAttributes,
         Macroable {
             __call as macroCall;
@@ -572,7 +570,7 @@ class Grid
             $this->columnNames[] = $column->getName();
         });
 
-        $this->buildRows($data, $collection);
+        $this->buildRows($data);
 
         $this->builded = true;
     }
@@ -580,15 +578,14 @@ class Grid
     /**
      * Build the grid rows.
      *
-     * @param array      $data
-     * @param Collection $collection
+     * @param array $data
      *
      * @return void
      */
-    protected function buildRows(array $data, Collection $collection)
+    protected function buildRows(array $data)
     {
-        $this->rows = collect($data)->map(function ($model, $number) use ($collection) {
-            return new Row($number, $model, $collection->get($number)->getKey());
+        $this->rows = collect($data)->map(function ($model, $number) {
+            return new Row($number, $model, $this->keyName);
         });
 
         if ($this->rowsCallback) {
@@ -934,6 +931,6 @@ class Grid
 
         $this->callRenderingCallback();
 
-        return Admin::component($this->view, $this->variables());
+        return view($this->view, $this->variables())->render();
     }
 }

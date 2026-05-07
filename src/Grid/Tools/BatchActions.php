@@ -20,7 +20,7 @@ class BatchActions extends AbstractTool
     /**
      * @var bool
      */
-    private $holdAll = false;
+    private $isHoldSelectAllCheckbox = false;
 
     /**
      * BatchActions constructor.
@@ -63,7 +63,7 @@ class BatchActions extends AbstractTool
     {
         $this->enableDelete = false;
 
-        $this->holdAll = true;
+        $this->isHoldSelectAllCheckbox = true;
 
         return $this;
     }
@@ -100,15 +100,63 @@ class BatchActions extends AbstractTool
      *
      * @return void
      */
-    protected function addActionScripts()
+    protected function setUpScripts()
     {
-        $this->actions->each(function ($action) {
+        Admin::script($this->script());
+
+        foreach ($this->actions as $action) {
             $action->setGrid($this->grid);
 
             if (method_exists($action, 'script')) {
                 Admin::script($action->script());
             }
+        }
+    }
+
+    /**
+     * Scripts of BatchActions button groups.
+     *
+     * @return string
+     */
+    protected function script()
+    {
+        $allName = $this->grid->getSelectAllName();
+        $rowName = $this->grid->getGridRowName();
+
+        $selected = trans('admin.grid_items_selected');
+
+        return <<<EOT
+
+$('.{$allName}').iCheck({checkboxClass:'icheckbox_minimal-blue'});
+
+$('.{$allName}').on('ifChanged', function(event) {
+    if (this.checked) {
+        $('.{$rowName}-checkbox').iCheck('check');
+    } else {
+        $('.{$rowName}-checkbox').iCheck('uncheck');
+    }
+}).on('ifClicked', function () {
+    if (this.checked) {
+        $.admin.grid.selects = {};
+    } else {
+        $('.{$rowName}-checkbox').each(function () {
+            var id = $(this).data('id');
+            $.admin.grid.select(id);
         });
+    }
+
+    var selected = $.admin.grid.selected().length;
+    
+    if (selected > 0) {
+        $('.{$allName}-btn').show();
+    } else {
+        $('.{$allName}-btn').hide();
+    }
+    
+    $('.{$allName}-btn .selected').html("{$selected}".replace('{n}', selected));
+});
+
+EOT;
     }
 
     /**
@@ -122,13 +170,14 @@ class BatchActions extends AbstractTool
             $this->actions->shift();
         }
 
-        $this->addActionScripts();
+        $this->setUpScripts();
 
-        return Admin::component('admin::grid.batch-actions', [
-            'all'     => $this->grid->getSelectAllName(),
-            'row'     => $this->grid->getGridRowName(),
-            'actions' => $this->actions,
-            'holdAll' => $this->holdAll,
-        ]);
+        $data = [
+            'actions'                 => $this->actions,
+            'selectAllName'           => $this->grid->getSelectAllName(),
+            'isHoldSelectAllCheckbox' => $this->isHoldSelectAllCheckbox,
+        ];
+
+        return view('admin::grid.batch-actions', $data)->render();
     }
 }

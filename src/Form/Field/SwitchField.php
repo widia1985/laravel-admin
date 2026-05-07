@@ -49,10 +49,6 @@ class SwitchField extends Field
 
     public function render()
     {
-        if (!$this->shouldRender()) {
-            return '';
-        }
-
         foreach ($this->states as $state => $option) {
             if ($this->value() == $option['value']) {
                 $this->value = $state;

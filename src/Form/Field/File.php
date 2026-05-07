@@ -9,7 +9,6 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 class File extends Field
 {
     use UploadField;
-    use HasValuePicker;
 
     /**
      * Css.
@@ -102,10 +101,6 @@ class File extends Field
      */
     public function prepare($file)
     {
-        if ($this->picker) {
-            return parent::prepare($file);
-        }
-
         if (request()->has(static::FILE_DELETE_FLAG)) {
             return $this->destroy();
         }
@@ -203,11 +198,11 @@ EOT;
 
             $this->script .= <<<EOT
 $("input{$this->getElementClassSelector()}").on('filebeforedelete', function() {
-
+    
     return new Promise(function(resolve, reject) {
-
+    
         var remove = resolve;
-
+    
         swal({
             title: "{$text['title']}",
             type: "warning",
@@ -235,10 +230,6 @@ EOT;
      */
     public function render()
     {
-        if ($this->picker) {
-            return $this->renderFilePicker();
-        }
-
         $this->options(['overwriteInitial' => true, 'msgPlaceholder' => trans('admin.choose_file')]);
 
         $this->setupDefaultOptions();

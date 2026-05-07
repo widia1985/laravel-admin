@@ -39,6 +39,50 @@ if (!function_exists('admin_url')) {
     }
 }
 
+if (!function_exists('factoryadmin_url')) {
+    /**
+     * Get admin url.
+     *
+     * @param string $path
+     * @param mixed  $parameters
+     * @param bool   $secure
+     *
+     * @return string
+     */
+    function factoryadmin_url($path = '', $parameters = [], $secure = null)
+    {
+        if (\Illuminate\Support\Facades\URL::isValidUrl($path)) {
+            return $path;
+        }
+
+        $secure = $secure ?: (config('factoryadmin.https') || config('factoryadmin.secure'));
+
+        return url(factoryadmin_base_path($path), $parameters, $secure);
+    }
+}
+
+if (!function_exists('repair_url')) {
+    /**
+     * Get admin url.
+     *
+     * @param string $path
+     * @param mixed  $parameters
+     * @param bool   $secure
+     *
+     * @return string
+     */
+    function repair_url($path = '', $parameters = [], $secure = null)
+    {
+        if (\Illuminate\Support\Facades\URL::isValidUrl($path)) {
+            return $path;
+        }
+
+        $secure = $secure ?: (config('repair.https') || config('repair.secure'));
+
+        return url(repair_base_path($path), $parameters, $secure);
+    }
+}
+
 if (!function_exists('admin_base_path')) {
     /**
      * Get admin url.
@@ -62,6 +106,55 @@ if (!function_exists('admin_base_path')) {
         return $prefix.'/'.$path;
     }
 }
+
+if (!function_exists('factoryadmin_base_path')) {
+    /**
+     * Get admin url.
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    function factoryadmin_base_path($path = '')
+    {
+        $prefix = '/'.trim(config('factoryadmin.route.prefix'), '/');
+
+        $prefix = ($prefix == '/') ? '' : $prefix;
+
+        $path = trim($path, '/');
+
+        if (is_null($path) || strlen($path) == 0) {
+            return $prefix ?: '/';
+        }
+
+        return $prefix.'/'.$path;
+    }
+}
+
+if (!function_exists('repair_base_path')) {
+    /**
+     * Get admin url.
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    function repair_base_path($path = '')
+    {
+        $prefix = '/'.trim(config('repair.route.prefix'), '/');
+
+        $prefix = ($prefix == '/') ? '' : $prefix;
+
+        $path = trim($path, '/');
+
+        if (is_null($path) || strlen($path) == 0) {
+            return $prefix ?: '/';
+        }
+
+        return $prefix.'/'.$path;
+    }
+}
+
 
 if (!function_exists('admin_toastr')) {
 
@@ -185,10 +278,8 @@ if (!function_exists('array_delete')) {
      */
     function array_delete(&$array, $value)
     {
-        $value = \Illuminate\Support\Arr::wrap($value);
-
         foreach ($array as $index => $item) {
-            if (in_array($item, $value)) {
+            if ($value == $item) {
                 unset($array[$index]);
             }
         }
@@ -318,12 +409,5 @@ if (!function_exists('json_encode_options')) {
         $json = json_encode($data['options']);
 
         return str_replace($data['toReplace'], $data['original'], $json);
-    }
-}
-
-if (!function_exists('admin_get_route')) {
-    function admin_get_route(string $name): string
-    {
-        return config('admin.route.prefix').'.'.$name;
     }
 }

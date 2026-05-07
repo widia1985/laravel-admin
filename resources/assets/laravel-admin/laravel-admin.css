@@ -1,3 +1,6 @@
+#reportcosttable tbody tr td{
+	width:200px;
+}
 input.content {
     min-height: 0 !important;
     padding: 6px 12px !important;
@@ -83,3 +86,9 @@ a.editable-empty {
 .file-input .glyphicon-folder-open {
     display: inline;
 }
+/*widia*/
+#grid_table_reportcost td{border:1px solid #f4f4f4;}
+#grid_table_reportcost th.column-date{padding-right:50px;padding-left:50px;}
+#grid_table_reportcost table td{border:0px;width:100px;}
+#grid_table_reportcost th{text-align:center;border:1px solid #f4f4f4;}
+.reportcosttable{margin:-8px;text-align:right;width:300px;}

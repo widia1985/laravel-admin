@@ -1,4 +1,4 @@
-<div class="modal" tabindex="-1" role="dialog" id="{{ $modal_id }}">
+<div class="modal" role="dialog" id="{{ $modal_id }}">
     <div class="modal-dialog {{ $modal_size }}" role="document">
         <div class="modal-content">
             <div class="modal-header">

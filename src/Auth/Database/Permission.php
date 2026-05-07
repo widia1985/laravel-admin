@@ -88,6 +88,62 @@ class Permission extends Model
 
         return false;
     }
+	
+	public function shouldPassThroughFactoryAdmin(Request $request): bool
+    {
+        if (empty($this->http_method) && empty($this->http_path)) {
+            return true;
+        }
+
+        $method = $this->http_method;
+
+        $matches = array_map(function ($path) use ($method) {
+            $path = trim(config('factoryadmin.route.prefix'), '/').$path;
+
+            if (Str::contains($path, ':')) {
+                list($method, $path) = explode(':', $path);
+                $method = explode(',', $method);
+            }
+
+            return compact('method', 'path');
+        }, explode("\n", $this->http_path));
+
+        foreach ($matches as $match) {
+            if ($this->matchRequest($match, $request)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function shouldPassThroughRepair(Request $request): bool
+    {
+        if (empty($this->http_method) && empty($this->http_path)) {
+            return true;
+        }
+
+        $method = $this->http_method;
+
+        $matches = array_map(function ($path) use ($method) {
+            $path = trim(config('repair.route.prefix'), '/').$path;
+
+            if (Str::contains($path, ':')) {
+                list($method, $path) = explode(':', $path);
+                $method = explode(',', $method);
+            }
+
+            return compact('method', 'path');
+        }, explode("\n", $this->http_path));
+
+        foreach ($matches as $match) {
+            if ($this->matchRequest($match, $request)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /**
      * filter \r.

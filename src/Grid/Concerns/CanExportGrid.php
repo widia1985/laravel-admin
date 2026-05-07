@@ -77,6 +77,11 @@ trait CanExportGrid
         if ($constraints = $this->model()->getConstraints()) {
             $input = array_merge($input, $constraints);
         }
+		
+		$arr = explode("_",$this->tableID);
+		if(in_array('index',$arr)){
+			$input = array_merge($input, array('index'=>$arr[count($arr)-1]));
+		}
 
         return $this->resource().'?'.http_build_query($input);
     }

@@ -46,6 +46,7 @@ class Filter implements Renderable
      */
     public function getFilterValue($default = '')
     {
+		$columnName = preg_replace('/\./','_',$this->getColumnName());
         return request($this->getColumnName(), $default);
     }
 

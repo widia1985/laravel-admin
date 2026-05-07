@@ -5,14 +5,17 @@ namespace Encore\Admin\Actions\Interactor;
 use Encore\Admin\Actions\RowAction;
 use Encore\Admin\Admin;
 use Encore\Admin\Form\Field;
+use App\FactoryAdmin\Forms\Field\MultipleFileFactoryAdmin;
 use Illuminate\Http\Request;
 use Illuminate\Support\MessageBag;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Validator;
 use Symfony\Component\DomCrawler\Crawler;
+use Encore\Admin\Form\Concerns\HandleCascadeFields;
 
 class Form extends Interactor
 {
+	use HandleCascadeFields;
     /**
      * @var array
      */
@@ -52,6 +55,33 @@ class Form extends Interactor
     public function text($column, $label = '')
     {
         $field = new Field\Text($column, $this->formatLabel($label));
+
+        $this->addField($field);
+
+        return $field;
+    }
+	
+	public function mutilFileF($column, $label = '')
+    {
+        $field = new MultipleFileFactoryAdmin($column, $this->formatLabel($label));
+
+        $this->addField($field);
+
+        return $field;
+    }
+	
+	public function currency($column, $label = '')
+    {
+        $field = new Field\Currency($column, $this->formatLabel($label));
+        
+        $this->addField($field);
+
+        return $field;
+    }
+	
+	public function listbox($column, $label = '')
+    {
+        $field = new Field\Listbox($column, $this->formatLabel($label));
 
         $this->addField($field);
 
@@ -179,9 +209,25 @@ class Form extends Interactor
         $field = new Field\Select($column, $this->formatLabel($label));
 
         $this->addField($field);
-
+        $field->setForm($this);
+		
         return $field;
     }
+	
+	public function pushField(Field $field): self
+    {
+        $field->setForm($this);
+
+        $this->addField($field);
+
+        return $this;
+    }
+	
+	public function html($html){
+		$field = new Field\Html($html,['a']);
+		$this->addField($field);
+		return $field;
+	}
 
     /**
      * @param string $column
@@ -224,7 +270,7 @@ class Form extends Interactor
         $field = new Field\Radio($column, $this->formatLabel($label));
 
         $this->addField($field);
-
+$field->setForm($this);
         return $field;
     }
 
@@ -324,7 +370,7 @@ class Form extends Interactor
     {
         return $this->date($column, $label)->format('HH:mm:ss');
     }
-
+	
     /**
      * @param string $column
      * @param string $label
@@ -497,7 +543,7 @@ class Form extends Interactor
     public function getModalId()
     {
         if (!$this->modalId) {
-            if ($this->action instanceof RowAction) {
+            if ($this->action instanceof RowAction || $this->action instanceof \App\Admin\Extensions\Tools\ModalField) {
                 $this->modalId = uniqid('row-action-modal-').mt_rand(1000, 9999);
             } else {
                 $this->modalId = strtolower(str_replace('\\', '-', get_class($this->action)));
@@ -523,13 +569,13 @@ class Form extends Interactor
         var data = $(this).data();
         var target = $(this);
         var modalId = $(this).attr('modal');
+		$('#'+modalId+' form .btn-primary').attr('disabled',false); //widia
         Object.assign(data, {$parameters});
         {$this->action->actionScript()}
         $('#'+modalId).modal('show');
-        $(':submit', '#'+modalId).button('reset');
         $('#'+modalId+' form').off('submit').on('submit', function (e) {
-            $(':submit', e.target).button('loading');
             e.preventDefault();
+			$('#'+modalId+' form .btn-primary').attr('disabled',true); //widia
             var form = this;
             {$this->buildActionPromise()}
             {$this->action->handleActionPromise()}
@@ -617,7 +663,6 @@ PROMISE;
                     if (data.status === true) {
                         $('#'+modalId).modal('hide');
                     }
-                    $(':submit', '#'+modalId).button('reset');
                 },
                 error:function(request){
                     reject(request);

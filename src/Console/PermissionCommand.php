@@ -124,6 +124,9 @@ class PermissionCommand extends Command
             case 'delete':
                 $http_method = ['DELETE'];
                 break;
+            case 'filter':
+                $http_method = [];
+                break;
             default:
                 $http_method = ['GET'];
         }
@@ -136,12 +139,17 @@ class PermissionCommand extends Command
         $resource = Str::kebab(Str::camel($table));
         switch ($permission) {
             case 'create':
-            case 'list':
-            case 'filter':
                 $http_path = '/'.$resource;
                 break;
             case 'edit':
+                $http_path = '/'.$resource.'/*';
+                break;
             case 'delete':
+                $http_path = '/'.$resource.'/*';
+                break;
+            case 'index':
+                $http_path = '/'.$resource;
+                break;
             case 'view':
                 $http_path = '/'.$resource.'/*';
                 break;
