@@ -121,6 +121,17 @@ trait HasFields
         'morphMany'      => Field\HasMany::class,
         'belongsTo'      => Field\BelongsTo::class,
         'belongsToMany'  => Field\BelongsToMany::class,
+        'value'          => Field\Value::class,
+        'value2'         => Field\Value2::class,
+        'rma'            => Field\Rma::class,
+        'arexlistbox'    => Field\ArexListBox::class,
+        'arexselect'     => Field\ArexSelect::class,
+        'creditmemo'     => Field\VCreditMemoApply::class,
+        'mutilFileF'     => Field\MultipleFileFactoryAdmin::class,
+        'fileF'          => Field\FileFactoryAdmin::class,
+        'ajaxImage'      => Field\AjaxImage::class,
+        'ajaxImageList'  => Field\AjaxImageList::class,
+        'ajaxImageJsonList' => Field\AjaxImageJsonList::class,
     ];
 
     /**
