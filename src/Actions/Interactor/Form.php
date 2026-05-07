@@ -543,7 +543,7 @@ $field->setForm($this);
     public function getModalId()
     {
         if (!$this->modalId) {
-            if ($this->action instanceof RowAction || $this->action instanceof \App\Admin\Extensions\Tools\ModalField) {
+            if ($this->action instanceof RowAction || $this->action instanceof \Encore\Admin\Extensions\Tools\ModalField) {
                 $this->modalId = uniqid('row-action-modal-').mt_rand(1000, 9999);
             } else {
                 $this->modalId = strtolower(str_replace('\\', '-', get_class($this->action)));
