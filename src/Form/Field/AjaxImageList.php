@@ -322,6 +322,7 @@ CSS
                 'name' => $col,
                 'path' => $path,
                 'url' => $url,
+                'download_url' => $path !== '' ? admin_url('api/image-download?path='.rawurlencode($path)) : '',
                 'inputId' => $this->id.'_h_'.$key,
             ];
         }
@@ -329,7 +330,7 @@ CSS
         $max = count($slots);
         $initPayload = [];
         foreach ($slots as $s) {
-            $initPayload[] = ['path' => $s['path'], 'url' => $s['url']];
+            $initPayload[] = ['path' => $s['path'], 'url' => $s['url'], 'download_url' => $s['download_url']];
         }
 
         $uploadUrl = admin_url('api/image-upload');
@@ -371,6 +372,7 @@ CSS
   var \$progBar = \$wrap.find('.ajax-image-list-add .ajax-image-progress-bar');
   var \$progLabel = \$wrap.find('.ajax-image-list-add .ajax-image-progress-label');
   var urlByPath = {};
+  var downloadUrlByPath = {};
   var dragCounter = 0;
 
   function eachHidden(cb) {
@@ -416,19 +418,26 @@ CSS
     return '';
   }
 
+  function downloadUrl(path) {
+    if (!path) { return ''; }
+    if (downloadUrlByPath[path]) { return downloadUrlByPath[path]; }
+    return '';
+  }
+
   function renderList() {
     \$items.empty();
     eachHidden(function (\$h) {
       var path = (\$h.val() || '').trim();
       if (!path) { return; }
       var u = thumbUrl(path);
+      var dlUrl = downloadUrl(path);
       var base = path.split('/').pop() || path || 'image';
       var \$item = \$('<div class="ajax-image-list-item"/>').data('path', path);
       if (u) {
         \$item.addClass('ajax-image-list-item--has-img');
         \$item.append(\$('<img alt=""/>').attr('src', u));
         var \$dl = \$('<a class="ajax-image-list-dl" title="Download"/>')
-          .attr('href', u).attr('target', '_blank').attr('download', base);
+          .attr('href', dlUrl || u).attr('target', '_blank').attr('download', base);
         \$dl.append(\$('<i class="fa fa-download"/>'));
         \$item.append(\$dl);
       } else {
@@ -525,6 +534,7 @@ CSS
         if (res && res.ok && res.path) {
           \$target.val(res.path);
           if (res.url) { urlByPath[res.path] = res.url; }
+          if (res.download_url) { downloadUrlByPath[res.path] = res.download_url; }
           renderList();
           done(true);
         } else {
@@ -597,6 +607,7 @@ CSS
 
   initSlots.forEach(function (s, i) {
     if (s.path && s.url) { urlByPath[s.path] = s.url; }
+    if (s.path && s.download_url) { downloadUrlByPath[s.path] = s.download_url; }
   });
 
   \$zone.on('click', function (e) {
@@ -659,10 +670,11 @@ CSS
     if (!src) { return; }
     var path = \$(this).data('path') || '';
     var fn = (typeof path === 'string' && path.split) ? (path.split('/').pop() || 'image') : 'image';
+    var dlUrl = downloadUrl(path) || src;
     var \$lb = \$('#arex-ajax-img-lightbox');
     if (!\$lb.length) { return; }
     \$lb.find('#arex-ajax-img-lightbox-img').attr('src', src).attr('alt', fn);
-    \$lb.find('#arex-ajax-img-lightbox-dl').attr('href', src).attr('download', fn);
+    \$lb.find('#arex-ajax-img-lightbox-dl').attr('href', dlUrl).attr('download', fn);
     \$lb.find('.arex-ajax-img-lightbox-title').text(fn);
     \$lb.modal('show');
   });
@@ -687,6 +699,7 @@ CSS
           var rest = pathsCompact();
           writeCompact(rest);
           delete urlByPath[path];
+          delete downloadUrlByPath[path];
           renderList();
           if (typeof toastr !== 'undefined') { toastr.success('Image removed'); }
         } else {
